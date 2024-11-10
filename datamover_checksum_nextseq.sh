@@ -1,4 +1,12 @@
 #! /bin/bash
+# Log output properly
+Log() 
+{
+    local level="$1"
+    shift
+    local message="$@"
+    echo "$(date +'%Y-%m-%d %H:%M:%S') [$level] $message" 
+}
 # Create the checksum of the current archive, ignore the existing checksum file
 function checksum_archive()
 {
@@ -28,48 +36,61 @@ else
    EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,$EMAIL
 fi
 
-cd /ephemeral/datamover/nextseq/$RUNNAME
-echo Changing permissions of the archive
-find /ephemeral/datamover/nextseq/$RUNNAME -type d|while read F;do echo $F;sudo chmod o+x "$F";done >/dev/null
-sudo chmod -R o+r /ephemeral/datamover/nextseq/$RUNNAME
-echo Done
-
-echo Creating checksum of the archive
-filter_checksumfile > /tmp/checksum.nextseq.$RUNNAME.org
-checksum_archive > /tmp/checksum.nextseq.$RUNNAME.tmp
-
-echo Done
-
-if cmp /tmp/checksum.nextseq.$RUNNAME.tmp /tmp/checksum.nextseq.$RUNNAME.org ;
+#Redirect outputs to a log
+exec > >(tee /ephemeral/datamover/log/nextseq.$RUNNAME.log) 2>&1
+if [ ! -d "/ephemeral/datamover/nextseq/$RUNNAME" ];
 then
- echo Checksum Successful
- echo $(wc -l /tmp/checksum.nextseq.$RUNNAME.tmp) files checked
- if [ -e SampleSheet.csv ]
- then
-    Parse_SampleSheet  
-    echo Run Name is $BSP and emails will be sent to $EMAIL 
- else
-    echo No SampleSheet Found
- fi
- #Move file into the archive.
- if [ "$BSP" != "" ];
- then
-	 sudo mkdir -p /archive/Sequencing/$BSP
-	 sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/$BSP
-	 cd /archive/Sequencing/$BSP/$RUNNAME
- else
-	 sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/Datamover_withoutBSP
-	 cd /archive/Sequencing/Datamover_withoutBSP/$RUNNAME
- fi
- checksum_archive > /tmp/checksum.nextseq.$RUNNAME.archive
-
- if cmp /tmp/checksum.nextseq.$RUNNAME.tmp /tmp/checksum.nextseq.$RUNNAME.archive ;
- then
-    echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Tranferred to the archive" $EMAIL
- else
-    echo "Transfer failed. Please check this manually"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
- fi
+    Log ERROR "Invalid Run name : $RUNNAME"
 else
-  echo Checksum Failed
-fi
+    cd /ephemeral/datamover/nextseq/$RUNNAME
+    Log INFO Changing permissions of the archive
+    find /ephemeral/datamover/nextseq/$RUNNAME -type d|while read F;do echo $F;sudo chmod o+x "$F";done >/dev/null
+    sudo chmod -R o+r /ephemeral/datamover/nextseq/$RUNNAME
+    Log SUCCESS Done
 
+    Log INFO Creating checksum of the archive
+    filter_checksumfile > /tmp/checksum.nextseq.$RUNNAME.org
+    checksum_archive > /tmp/checksum.nextseq.$RUNNAME.tmp
+    Log SUCCESS Done
+
+    if cmp /tmp/checksum.nextseq.$RUNNAME.tmp /tmp/checksum.nextseq.$RUNNAME.org ;
+    then
+         Log INFO Transfer and Original Checksum Match
+         Log INFO  $(wc -l /tmp/checksum.nextseq.$RUNNAME.tmp) files checked
+         if [ -e SampleSheet.csv ];
+         then
+            Log INFO Sample sheet present 
+            Parse_SampleSheet  
+            Log INFO Run Name is $BSP and emails will be sent to $EMAIL 
+         else
+            Log ERROR No SampleSheet Found
+         fi
+
+         #Move file into the archive.
+         if [ "$BSP" != "" ];
+         then
+             Log INFO moving the tranfer to the archive
+             sudo mkdir -p /archive/Sequencing/$BSP
+             sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/$BSP
+             cd /archive/Sequencing/$BSP/$RUNNAME
+             Log INFO Move complete
+         else
+             Log INFO moving the tranfer to Datamover_withoutBSP
+             sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/Datamover_withoutBSP
+             cd /archive/Sequencing/Datamover_withoutBSP/$RUNNAME
+             Log INFO Move complete
+         fi
+
+         checksum_archive > /tmp/checksum.nextseq.$RUNNAME.archive
+         if cmp /tmp/checksum.nextseq.$RUNNAME.tmp /tmp/checksum.nextseq.$RUNNAME.archive ;
+         then
+            Log SUCCESS Transfer was successful
+            echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Tranferred to the archive" $EMAIL
+         else
+            Log ERROR Checsums of transfers do not match  
+            echo "Transfer failed. Please check this manually"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
+         fi
+    else
+         echo Checksum Failed
+    fi
+fi
