@@ -72,7 +72,7 @@ else
              Log INFO moving the tranfer to the archive
              sudo mkdir -p /archive/Sequencing/$BSP
              sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/$BSP
-             mkdir -p /archive/Sequencing/$BSP/${RUNNAME}_Metadata
+             sudo mkdir -p /archive/Sequencing/$BSP/${RUNNAME}_Metadata
              sudo chown datamover:datamover /archive/Sequencing/$BSP/${RUNNAME}_Metadata
              cd /archive/Sequencing/$BSP/$RUNNAME
              Log INFO Move complete
@@ -87,7 +87,7 @@ else
          if cmp /tmp/checksum.nextseq.$RUNNAME.tmp /tmp/checksum.nextseq.$RUNNAME.archive ;
          then
             Log SUCCESS Transfer was successful
-            echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Tranferred to the archive" $EMAIL
+            echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Transferred to the archive" $EMAIL
          else
             Log ERROR Checsums of transfers do not match  
             echo "Transfer failed. Please check this manually"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
