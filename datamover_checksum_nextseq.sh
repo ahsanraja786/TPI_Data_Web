@@ -45,7 +45,7 @@ else
     cd /ephemeral/datamover/nextseq/$RUNNAME
     Log INFO Changing permissions of the archive
     find /ephemeral/datamover/nextseq/$RUNNAME -type d|while read F;do echo $F;sudo chmod o+x "$F";done >/dev/null
-    sudo chmod -R o+r /ephemeral/datamover/nextseq/$RUNNAME
+    sudo chmod -R o+r-w /ephemeral/datamover/nextseq/$RUNNAME
     Log SUCCESS Done
 
     Log INFO Creating checksum of the archive
@@ -72,6 +72,8 @@ else
              Log INFO moving the tranfer to the archive
              sudo mkdir -p /archive/Sequencing/$BSP
              sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/$BSP
+             mkdir -p /archive/Sequencing/$BSP/${RUNNAME}_Metadata
+             sudo chown datamover:datamover /archive/Sequencing/$BSP/${RUNNAME}_Metadata
              cd /archive/Sequencing/$BSP/$RUNNAME
              Log INFO Move complete
          else
@@ -91,6 +93,6 @@ else
             echo "Transfer failed. Please check this manually"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
          fi
     else
-         echo Checksum Failed
+         Log ERROR Checksum Failed
     fi
 fi
