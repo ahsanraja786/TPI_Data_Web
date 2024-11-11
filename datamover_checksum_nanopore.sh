@@ -23,11 +23,9 @@ BSP=$2
 EMAIL=$3
 if [ "$EMAIL" == "" ]
 then
-   #EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk
-   EMAIL=data.manager@pirbright.ac.uk
+   EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk
 else
-   #EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,$EMAIL
-   EMAIL=data.manager@pirbright.ac.uk,$EMAIL
+   EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,$EMAIL
 fi
 
 #Redirect outputs to a log

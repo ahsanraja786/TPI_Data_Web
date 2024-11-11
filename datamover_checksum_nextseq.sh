@@ -90,7 +90,7 @@ else
             echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Transferred to the archive" $EMAIL
          else
             Log ERROR Checsums of transfers do not match  
-            echo "Transfer failed. Please check this manually"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
+            echo "Transfer failed. Please check this manually"| cat - /ephemeral/datamover/log/nextseq.$RUNNAME.log |mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
          fi
     else
          Log ERROR Checksum Failed
