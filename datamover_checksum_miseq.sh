@@ -18,8 +18,8 @@ function filter_checksumfile()
 }
 function Parse_SampleSheet()
 {
-    V=$(cat SampleSheet.csv |grep ^Description|cut -f2- -d,) 
-    BSP=$(echo $V|cut -f2 -d" " |cut -f1 -d'_')
+    V=$(cat SampleSheet.csv|dos2unix |grep ^Description|cut -f2- -d,) 
+    BSP=$(echo $V|cut -f1 -d" " |cut -f1 -d'_')
     EMAIL="$EMAIL,"$(echo $V|cut -f2- -d" "|sed "s/^ *//g"|tr -s " " ,)
 }
 
@@ -85,7 +85,7 @@ else
         fi
 
         checksum_archive > /tmp/checksum.miseq.$RUNNAME.archive
-        if cmp /tmp/checksum.miseq.$RUNNAME.tmp /tmp/checksum.miseq.$RUNNAME.archive ;  then
+        if cmp /tmp/checksum.miseq.$RUNNAME.tmp /tmp/checksum.miseq.$RUNNAME.archive ;
         then
             Log SUCCESS Transfer was successful
             echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Transferred to the archive" $EMAIL
