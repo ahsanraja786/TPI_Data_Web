@@ -1,52 +1,83 @@
+#! /bin/bash
+# Log output properly
+Log()
+{
+    local level="$1"
+    shift
+    local message="$@"
+    echo "$(date +'%Y-%m-%d %H:%M:%S') [$level] $message"
+}
+# Create the checksum of the current archive, ignore the existing checksum file
+function checksum_archive()
+{
+    find . -type f -exec md5sum {} \; |grep -v checksum.csv|sed 's/ \./ /g'|tr A-Z a-z|sort
+}
+# Filter existing checksum file to a common format
+function filter_checksumfile()
+{
+    cat *checksum.csv|grep -v '"Algorithm"'| cut -c7- |tr -d '"'|sed 's/,/  /g'|sed "s%[^ ]*$RUNNAME\\\%\\\%" |tr \\\\ / |tr A-Z a-z  |sort
+}
+
 RUNNAME=$1
 BSP=$2
 EMAIL=$3
-
 if [ "$EMAIL" == "" ]
 then
    EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk
 else
    EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,$EMAIL
 fi
+#Redirect outputs to a log
+exec > >(tee /ephemeral/datamover/log/miseq.$RUNNAME.log) 2>&1
 
 cd /ephemeral/datamover/miseq/$RUNNAME
 #We will set correct permissions
+Log INFO Changing permissions of the archive
 find /ephemeral/datamover/miseq/$RUNNAME -type d|while read F;do echo $F;sudo chmod o+x "$F";done >/dev/null
 sudo chmod -R o+r /ephemeral/datamover/miseq/$RUNNAME
+Log SUCCESS Done
 
-cat *checksum.csv|grep -v '"Algorithm"'| cut -c7- |tr -d '"'|sed 's/,/  /g'|sed "s%[^ ]*$RUNNAME\\\%\\\%" |tr \\\\ / |tr A-Z a-z  |sort > /tmp/checksum.miseq.$RUNNAME.org
+Log INFO Creating checksum of the archive
+filter_checksumfile > /tmp/checksum.miseq.$RUNNAME.org
 dos2unix /tmp/checksum.miseq.$RUNNAME.org
-find . -type f -exec md5sum {} \; |grep -v checksum.csv|sed 's/ \./ /g'|tr A-Z a-z|sort > /tmp/checksum.miseq.$RUNNAME.tmp
+checksum_archive > /tmp/checksum.miseq.$RUNNAME.tmp
+Log SUCCESS Done
 
 #We calculated the checksums, we will compare them now
 if cmp /tmp/checksum.miseq.$RUNNAME.tmp /tmp/checksum.miseq.$RUNNAME.org ;
 then
-  echo Checksum Successful
-  echo $(wc -l /tmp/checksum.miseq.$RUNNAME.tmp) files checked
-  if [ -e SampleSheet.csv ]
-  then
-     echo Run Name is $(grep ^Description SampleSheet.csv|awk -v FS=, '{print $2}')
-  else
-     echo No SampleSheet Found
-  fi
+  Log INFO Transfer and Original Checksum Match
+  Log INFO $(wc -l /tmp/checksum.miseq.$RUNNAME.tmp) files checked
   #Move file into the archive.
   if [ "$BSP" != "" ];
   then
+     Log INFO moving the transfer to the archive
      sudo mkdir -p /archive/Sequencing/$BSP
      sudo mv /ephemeral/datamover/miseq/$RUNNAME /archive/Sequencing/$BSP
      cd /archive/Sequencing/$BSP/$RUNNAME
-     find . -type f -exec md5sum {} \; |grep -v checksum.csv|sed 's/ \./ /g'|tr A-Z a-z|sort > /tmp/checksum.miseq.$RUNNAME.archive
+     Log INFO Move complete
   else
+     Log INFO moving the transfer to Datamover_withoutBSP
+     sudo mkdir -p /archive/Sequencing/$BSP
+     sudo mv /ephemeral/datamover/miseq/$RUNNAME /archive/Sequencing/$BSP
+     cd /archive/Sequencing/$BSP/$RUNNAME
+     Log INFO Move complete
+  else
+     Log INFO moving the transfer to Datamover_withoutBSP
      sudo mv /ephemeral/datamover/miseq/$RUNNAME /archive/Sequencing/Datamover_withoutBSP
      cd /archive/Sequencing/Datamover_withoutBSP/$RUNNAME
-     find . -type f -exec md5sum {} \; |grep -v checksum.csv|sed 's/ \./ /g'|tr A-Z a-z|sort > /tmp/checksum.miseq.$RUNNAME.archive
+     Log INFO Move complete
   fi
-  if cmp /tmp/checksum.miseq.$RUNNAME.tmp /tmp/checksum.miseq.$RUNNAME.archive ;  then
-     echo "File move was Successful!"
+  checksum_archive > /tmp/checksum.miseq.$RUNNAME.archive
+  if cmp /tmp/checksum.miseq.$RUNNAME.tmp /tmp/checksum.miseq.$RUNNAME.archive ;
+  then
+     Log SUCCESS Transfer was successful
+     echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Transferred to the archive" $EMAIL
   else
-     echo "File move Failed, Please check the archive"
+     Log ERROR Checsums of transfers do not match
+     echo "Transfer failed. Please check this manually"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
   fi
 else
-  echo Checksum Failed
+  Log ERROR Checksum Failed
 fi
-
+  
