@@ -19,9 +19,9 @@ function filter_checksumfile()
 }
 function Parse_SampleSheet()
 {
-    V=$(cat SampleSheet.csv |grep RunDescription|cut -f2- -d,) 
-    BSP=$(echo $V|cut -f1 -d:|cut -f1 -d'_')
-    EMAIL="$EMAIL,"$(echo $V|cut -f2 -d:|tr -d ' ')
+    V=$(cat SampleSheet.csv|dos2unix |grep ^RunDescription|cut -f2- -d,) 
+    BSP=$(echo $V|cut -f1 -d" " |cut -f1 -d'_')
+    EMAIL="$EMAIL,"$(echo $V|cut -f2- -d" "|sed "s/^ *//g"|tr -s " " ,)
 }
 
 
@@ -89,7 +89,7 @@ else
             Log SUCCESS Transfer was successful
             echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Transferred to the archive" $EMAIL
          else
-            Log ERROR Checsums of transfers do not match  
+            Log ERROR Checksums of transfers do not match  
             echo "Transfer failed. Please check this manually"| cat - /ephemeral/datamover/log/nextseq.$RUNNAME.log |mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
          fi
     else
