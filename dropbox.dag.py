@@ -18,6 +18,6 @@ dag = DAG('dropbox_copy', default_args=non_resume_args, schedule=timedelta(minut
 
 t1 = BashOperator(
     task_id='Copy_from_dropbox',
-    bash_command='~/git/TPI_Data_Web/dropboxcopy.sh',
+    bash_command='~/airflow/bash/dropboxcopy.sh',
     dag=dag)
 

@@ -13,10 +13,10 @@ class DirectorySensor(BaseSensorOperator):
         print(current_directories)
         for Dir in current_directories:
             Base = os.path.basename(Dir)
-            if os.path.exists("/tmp/airflow."+Base):
+            if os.path.exists("/ephemeral/datamover/log/airflow."+Base):
                 print("Polled "+ Base)
             else:
-                open("/tmp/airflow."+Base,"w")
+                open("/ephemeral/datamover/log/airflow."+Base,"w")
                 context['ti'].xcom_push(key='new_directory_name', value=Base)
                 return True
         return False 

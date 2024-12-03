@@ -40,6 +40,7 @@ exec > >(tee /ephemeral/datamover/log/miseq.$RUNNAME.log) 2>&1
 if [ ! -d "/ephemeral/datamover/miseq/$RUNNAME" ];
 then
     Log ERROR "Invalid Run name : $RUNNAME"
+    exit 1
 else
     cd /ephemeral/datamover/miseq/$RUNNAME
     #We will set correct permissions
@@ -92,8 +93,10 @@ else
         else
             Log ERROR Checksums of transfers do not match  
             echo "Transfer failed. Please check this manually"| cat - /ephemeral/datamover/log/miseq.$RUNNAME.log |mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
+	    exit 1
         fi
     else
         Log ERROR Checksum Failed
+	exit 1
     fi
 fi

@@ -41,6 +41,7 @@ exec > >(tee /ephemeral/datamover/log/nextseq.$RUNNAME.log) 2>&1
 if [ ! -d "/ephemeral/datamover/nextseq/$RUNNAME" ];
 then
     Log ERROR "Invalid Run name : $RUNNAME"
+    exit 1
 else
     cd /ephemeral/datamover/nextseq/$RUNNAME
     Log INFO Changing permissions of the archive
@@ -64,6 +65,7 @@ else
             Log INFO Run Name is $BSP and emails will be sent to $EMAIL 
          else
             Log ERROR No SampleSheet Found
+            exit 1
          fi
 
          #Move file into the archive.
@@ -91,8 +93,10 @@ else
          else
             Log ERROR Checksums of transfers do not match  
             echo "Transfer failed. Please check this manually"| cat - /ephemeral/datamover/log/nextseq.$RUNNAME.log |mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
+            exit 1
          fi
     else
          Log ERROR Checksum Failed
+         exit 1
     fi
 fi
