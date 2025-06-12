@@ -9,7 +9,7 @@ class DirectorySensor(BaseSensorOperator):
         self.directory_path = directory_path
 
     def poke(self, context):
-        current_directories = os.listdir("/ephemeral/datamover/nextseq")
+        current_directories = os.listdir(self.directory_path)
         print(current_directories)
         for Dir in current_directories:
             Base = os.path.basename(Dir)
