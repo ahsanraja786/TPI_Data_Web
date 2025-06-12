@@ -1,0 +1,16 @@
+# /etc/systemd/system/airflow-webserver.service
+[Unit]
+Description=Airflow webserver daemon
+After=network.target
+
+[Service]
+Environment=AIRFLOW_HOME=/home/datamover/airflow
+User=datamover
+Group=datamover
+Restart=always
+Type=simple
+ExecStart=/home/datamover/VENV/airflow/bin/airflow webserver
+
+[Install]
+WantedBy=multi-user.target
+
