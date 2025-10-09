@@ -30,10 +30,9 @@ EMAIL=$3
 
 if [ "$EMAIL" == "" ]
 then
-   EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk
+   EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,ahsan.riaz@pirbright.ac.uk
 else
-   #EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,$EMAIL
-   EMAIL=data.manager@pirbright.ac.uk,$EMAIL
+   EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,ahsan.riaz@pirbright.ac.uk,$EMAIL
 fi
 
 #Redirect outputs to a log
@@ -47,7 +46,10 @@ else
     #We will set correct permissions
     Log INFO Changing permissions of the archive
     find /ephemeral/datamover/miseq/$RUNNAME -type d|while read F;do echo $F;sudo chmod o+x "$F";done >/dev/null
-    sudo chmod -R o+r /ephemeral/datamover/miseq/$RUNNAME
+    find /ephemeral/datamover/miseq/$RUNNAME -type d -exec chmod u+rwx {} +
+
+    sudo chmod -R o+r-w /ephemeral/datamover/miseq/$RUNNAME
+    sudo chmod -R u+r+w /ephemeral/datamover/miseq/$RUNNAME
     Log SUCCESS Done
 
     Log INFO Creating checksum of the archive
