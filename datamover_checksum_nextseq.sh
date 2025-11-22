@@ -23,6 +23,12 @@ function Parse_SampleSheet()
     BSP=$(echo $V|cut -f1 -d" " |cut -f1 -d'_')
     EMAIL="$EMAIL,"$(echo $V|cut -f2- -d" "|sed "s/^ *//g"|tr -s " " ,)
 }
+#Error message for move failure
+function Error_Move()
+{
+    echo "Move failed. Please check this manually"| cat - /ephemeral/datamover/log/nextseq.$RUNNAME.log |mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
+    exit 1
+}
 
 
 RUNNAME=$1
@@ -50,6 +56,8 @@ else
 
     sudo chmod -R o+r-w /ephemeral/datamover/nextseq/$RUNNAME
     sudo chmod -R u+r+w /ephemeral/datamover/nextseq/$RUNNAME
+    #This is to avoid eating away datamover quota
+    sudo chown -R root:root /ephemeral/datamover/nextseq/$RUNNAME
     Log SUCCESS Done
 
     Log INFO Creating checksum of the archive
@@ -76,14 +84,14 @@ else
          then
              Log INFO moving the tranfer to the archive
              sudo mkdir -p /archive/Sequencing/$BSP
-             sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/$BSP
+             sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/$BSP || Error_Move
              sudo mkdir -p /archive/Sequencing/$BSP/${RUNNAME}_Metadata
              sudo chown datamover:datamover /archive/Sequencing/$BSP/${RUNNAME}_Metadata
              cd /archive/Sequencing/$BSP/$RUNNAME
              Log INFO Move complete
          else
              Log INFO moving the tranfer to Datamover_withoutBSP
-             sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/Datamover_withoutBSP
+             sudo mv /ephemeral/datamover/nextseq/$RUNNAME /archive/Sequencing/Datamover_withoutBSP || Error_Move
              cd /archive/Sequencing/Datamover_withoutBSP/$RUNNAME
              Log INFO Move complete
          fi
