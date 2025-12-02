@@ -52,7 +52,7 @@ else
     #We will set correct permissions
     Log INFO Changing permissions of the archive
     find /ephemeral/datamover/miseq/$RUNNAME -type d|while read F;do echo $F;sudo chmod o+x "$F";done >/dev/null
-    find /ephemeral/datamover/miseq/$RUNNAME -type d -exec chmod u+rwx {} +
+    find /ephemeral/datamover/miseq/$RUNNAME -type d -exec sudo chmod u+rwx {} +
 
     sudo chmod -R o+r-w /ephemeral/datamover/miseq/$RUNNAME
     sudo chmod -R u+r+w /ephemeral/datamover/miseq/$RUNNAME

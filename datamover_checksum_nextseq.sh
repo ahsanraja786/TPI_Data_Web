@@ -52,7 +52,7 @@ else
     cd /ephemeral/datamover/nextseq/$RUNNAME
     Log INFO Changing permissions of the archive
     find /ephemeral/datamover/nextseq/$RUNNAME -type d|while read F;do echo $F;sudo chmod o+x "$F";done >/dev/null
-    find /ephemeral/datamover/nextseq/$RUNNAME -type d -exec chmod u+rwx {} +
+    find /ephemeral/datamover/nextseq/$RUNNAME -type d -exec sudo chmod u+rwx {} +
 
     sudo chmod -R o+r-w /ephemeral/datamover/nextseq/$RUNNAME
     sudo chmod -R u+r+w /ephemeral/datamover/nextseq/$RUNNAME
