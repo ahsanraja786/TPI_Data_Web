@@ -57,7 +57,6 @@ else
     sudo chmod -R o+r-w /ephemeral/datamover/nextseq/$RUNNAME
     sudo chmod -R u+r+w /ephemeral/datamover/nextseq/$RUNNAME
     #This is to avoid eating away datamover quota
-    sudo chown -R root:root /ephemeral/datamover/nextseq/$RUNNAME
     Log SUCCESS Done
 
     Log INFO Creating checksum of the archive
@@ -67,6 +66,7 @@ else
 
     if cmp /tmp/checksum.nextseq.$RUNNAME.tmp /tmp/checksum.nextseq.$RUNNAME.org ;
     then
+	 sudo chown -R root:root /ephemeral/datamover/nextseq/$RUNNAME
          Log INFO Transfer and Original Checksum Match
          Log INFO  $(wc -l /tmp/checksum.nextseq.$RUNNAME.tmp) files checked
          if [ -e SampleSheet.csv ];

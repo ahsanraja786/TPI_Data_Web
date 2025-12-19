@@ -62,11 +62,11 @@ else
     filter_checksumfile > /tmp/checksum.miseq.$RUNNAME.org
     dos2unix /tmp/checksum.miseq.$RUNNAME.org
     checksum_archive > /tmp/checksum.miseq.$RUNNAME.tmp
-    sudo chown -R root:root /ephemeral/datamover/miseq/$RUNNAME
     Log SUCCESS Done
 
     if cmp /tmp/checksum.miseq.$RUNNAME.tmp /tmp/checksum.miseq.$RUNNAME.org ;
     then
+	sudo chown -R root:root /ephemeral/datamover/miseq/$RUNNAME
         Log INFO Transfer and Original Checksum Match
         Log INFO  $(wc -l /tmp/checksum.miseq.$RUNNAME.tmp) files checked
         if [ -e SampleSheet.csv ]
