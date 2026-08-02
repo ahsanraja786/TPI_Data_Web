@@ -19,11 +19,13 @@ function filter_checksumfile()
 }
 
 RUNNAME=$1
-BSP=$2
-EMAIL=$3
+BSP=$(echo $RUNNAME|cut -f3 -d_)
+EMAIL=$(mysql -N -B -e "SELECT Email FROM Pirbright.Incidents WHERE BSP=${BSP}" | tr '\t' '\n')
+
 if [ "$EMAIL" == "" ]
 then
-   EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk
+   echo "$BSP has no requestor email associated with it. Please check this manually for incorrect naming"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk 
+   exit
 else
    EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,$EMAIL
 fi

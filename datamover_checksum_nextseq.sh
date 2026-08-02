@@ -102,15 +102,14 @@ else
             Log SUCCESS Transfer was successful
             echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Transferred to the archive" $EMAIL
             BSPNO=${BSP##BSP}
-            echo "$BSPNO,$RUNNAME,/mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME" > /tmp/$RUNNAME.sql.txt
-            FILE="/tmp/$RUNNAME.sql.txt"
-            mysql --local-infile=1 -u helpdesk -D Pirbright -e "
-                LOAD DATA LOCAL INFILE '${FILE}'
-                INTO TABLE Incidents_Detail
-                FIELDS TERMINATED BY ','
-                LINES TERMINATED BY '\n'
-                (BSP, RUN_NAME, PATH);
-                SHOW WARNINGS;"
+            "$(dirname "$0")/import_illumina_metadata.sh" \
+                "$BSPNO" "$RUNNAME" \
+                "/archive/Sequencing/$BSP/$RUNNAME" \
+                "/mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME" \
+                "/ephemeral/datamover/log/nextseq.$RUNNAME.log"
+            if [ "$?" -ne 0 ]; then
+                exit 1
+            fi
          else
             Log ERROR Checksums of transfers do not match  
             echo "Transfer failed. Please check this manually"| cat - /ephemeral/datamover/log/nextseq.$RUNNAME.log |mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk
