@@ -109,6 +109,12 @@ else
             if [ "$?" -ne 0 ]; then
                 exit 1
             fi
+            "$(dirname "$0")/export_illumina_metadata.sh" \
+                "$BSPNO" "$RUNNAME" \
+                "/ephemeral/datamover/log/BSP${BSPNO}_${RUNNAME}.illumina-metadata.csv"
+            if [ "$?" -ne 0 ]; then
+                exit 1
+            fi
         else
             Log ERROR Checksums of transfers do not match  
             echo "Transfer failed. Please check this manually"| cat - /ephemeral/datamover/log/miseq.$RUNNAME.log |mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk

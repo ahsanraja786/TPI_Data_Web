@@ -8,6 +8,21 @@ installed to the venv:
 
 The helper exports an Illumina run with `illuminate` and imports one row into
 `Incidents_Detail`. It replaces an existing row with the same BSP and run name.
+
+## Illumina metadata reports
+
+`export_illumina_metadata.sh` reads one imported Illumina row from
+`Incidents_Detail` and writes a two-column `DESCRIPTION,VALUE` CSV. It contains
+one row for each of the 31 reporting fields, using the supplied human-readable
+description and its database value. It also emails that CSV to the sequencing
+unit, Chandana Tennakoon, and the data manager. Both MiSeq and NextSeq transfer
+scripts run it after their metadata import completes.
+
+The helper can also be run manually:
+
+```bash
+MYSQL_DATABASE=Pirbright ./export_illumina_metadata.sh 123 run-name /tmp/BSP123_run-name.illumina-metadata.csv
+```
 Use a copied test run and a test database; do not use a production BSP/run name
 for testing.
 
