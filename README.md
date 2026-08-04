@@ -8,6 +8,8 @@ installed to the venv:
 
 The helper exports an Illumina run with `illuminate` and imports one row into
 `Incidents_Detail`. It replaces an existing row with the same BSP and run name.
+It uses `illuminate` from `PATH`, falling back to `/home/$USER/bin/illuminate`
+when it is not available there.
 
 ## Illumina metadata reports
 
