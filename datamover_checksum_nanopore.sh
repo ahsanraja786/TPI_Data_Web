@@ -24,7 +24,7 @@ EMAIL=$(mysql -N -B -e "SELECT Email FROM Pirbright.Incidents WHERE BSP=${BSP}" 
 
 if [ "$EMAIL" == "" ]
 then
-   echo "$BSP has no requestor email associated with it. Please check this manually for incorrect naming"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk 
+   echo "BSP$BSP has no requestor email associated with it. Please check this manually for incorrect naming"|mutt -s "Data move failed $BSP:$RUN" data.manager@pirbright.ac.uk 
    exit
 else
    EMAIL=data.manager@pirbright.ac.uk,sequencing.unit@pirbright.ac.uk,$EMAIL
@@ -55,9 +55,9 @@ then
   if [ "$BSP" != "" ];
   then
      Log INFO moving the transfer to the archive
-     sudo mkdir -p /archive/Sequencing/$BSP
-     sudo mv /ephemeral/datamover/nanopore/$RUNNAME /archive/Sequencing/$BSP
-     cd /archive/Sequencing/$BSP/$RUNNAME
+     sudo mkdir -p /archive/Sequencing/BSP${BSP}
+     sudo mv /ephemeral/datamover/nanopore/$RUNNAME /archive/Sequencing/BSP${BSP}
+     cd /archive/Sequencing/BSP${BSP}/$RUNNAME
      Log INFO Move complete
   else
      Log INFO moving the transfer to Datamover_withoutBSP
@@ -69,9 +69,9 @@ then
   if cmp /tmp/checksum.nanopore.$RUNNAME.tmp /tmp/checksum.nanopore.$RUNNAME.archive ;
   then
      Log SUCCESS Transfer was successful
-     echo "your run $BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME"|mutt -s "$BSP:$RUNNAME Transferred to the archive" $EMAIL 
+     echo "your run BSP$BSP:$RUNNAME was moved succssefully to /mnt/lustre/RDS-archive/Sequencing/BSP$BSP/$RUNNAME"|mutt -s "BSP$BSP:$RUNNAME Transferred to the archive" $EMAIL 
      BSPNO=${BSP##BSP}
-     echo "$BSPNO,$RUNNAME,/mnt/lustre/RDS-archive/Sequencing/$BSP/$RUNNAME" > /tmp/$RUNNAME.sql.txt
+     echo "$BSPNO,$RUNNAME,/mnt/lustre/RDS-archive/Sequencing/BSP$BSP/$RUNNAME" > /tmp/$RUNNAME.sql.txt
      FILE="/tmp/$RUNNAME.sql.txt"
      mysql --local-infile=1 -u helpdesk -D Pirbright -e "
          LOAD DATA LOCAL INFILE '${FILE}'
